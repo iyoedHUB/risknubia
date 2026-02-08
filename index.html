@@ -276,7 +276,7 @@ textarea{
     <h1>RMO Risk Server</h1>
 
     <div id="riskCount">Remaining : 0</div>
-    <div id="loading">⏳ Memuat data...</div>
+    <div id="loading">⏳ Ready</div>
 
     <textarea id="riskBox" readonly placeholder="Tekan Generate untuk menampilkan riskToken..."></textarea>
 
@@ -359,37 +359,47 @@ textarea{
 
   /* ====== GENERATE (TIDAK BERUBAH) ====== */
   generateBtn.addEventListener("click", async () => {
+
+  /* ===== COOLDOWN SAVE ===== */
+  localStorage.setItem(COOLDOWN_KEY, Date.now());
+
+  loading.style.display = "block";
+  riskBox.value = "";
+
+  await loadConfig();
+
+  setTimeout(async () => {
     loading.style.display = "block";
-    riskBox.value = "";
-    await loadConfig();
 
-    setTimeout(async () => {
-      loading.style.display = "none";
+    if (configArray.length === 0) {
+      riskBox.value = "Data kosong";
+      return;
+    }
 
-      if (configArray.length === 0) {
-        riskBox.value = "Data kosong";
-        return;
-      }
+    const randomIndex = Math.floor(Math.random() * configArray.length);
+    const selected = configArray[randomIndex];
 
-      const randomIndex = Math.floor(Math.random() * configArray.length);
-      const selected = configArray[randomIndex];
+    riskBox.value =
+      selected.data?.riskToken || "Tidak ada riskToken";
 
-      riskBox.value =
-        selected.data?.riskToken || "Tidak ada riskToken";
+    configArray.splice(randomIndex, 1);
 
-      configArray.splice(randomIndex, 1);
+    try {
+      await saveConfig();
+      showToast("Token terpakai & dihapus ✓");
+    } catch {
+      showToast("Gagal update ke server");
+    }
 
-      try {
-        await saveConfig();
-        showToast("Token terpakai & dihapus ✓");
-      } catch {
-        showToast("Gagal update ke server");
-      }
+    riskCount.textContent =
+      "Remaining : " + configArray.length;
 
-      riskCount.textContent =
-        "Remaining : " + configArray.length;
-    }, 2000);
-  });
+    /* mulai countdown */
+    startCountdown(COOLDOWN_MS);
+
+  }, 1500);
+});
+
 
   /* ====== COPY (TETAP) ====== */
   copyBtn.addEventListener("click", () => {
@@ -454,6 +464,7 @@ textarea{
   window.onload = () => {
     loadConfig();
     autoCheckBuild();
+    checkCooldown();
   };
 
   /* ===== BUILD ID CHECK (TIDAK DIUBAH) ===== */
@@ -526,6 +537,72 @@ textarea{
       msg.textContent = "Gagal koneksi server";
     }
   };
+
+    /* =================================================
+       24 JAM COOLDOWN GENERATE SYSTEM
+       ================================================= */
+    
+    const COOLDOWN_KEY = "RMO_LAST_GENERATE";
+    const COOLDOWN_MS = 12 * 60 * 60 * 1000; // 24 jam
+    
+    let countdownInterval = null;
+    
+    /* ===== format waktu ===== */
+    function formatTime(ms) {
+      const total = Math.floor(ms / 1000);
+    
+      const h = String(Math.floor(total / 3600)).padStart(2, "0");
+      const m = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
+      const s = String(total % 60).padStart(2, "0");
+    
+      return `${h}:${m}:${s}`;
+    }
+    
+    /* ===== cek cooldown ===== */
+    function checkCooldown() {
+      const last = localStorage.getItem(COOLDOWN_KEY);
+    
+      if (!last) {
+        generateBtn.disabled = false;
+        loading.textContent = "⏳ Ready";
+        return;
+      }
+    
+      const diff = Date.now() - parseInt(last);
+      const remain = COOLDOWN_MS - diff;
+    
+      if (remain <= 0) {
+        generateBtn.disabled = false;
+        loading.textContent = "⏳ Ready";
+        localStorage.removeItem(COOLDOWN_KEY);
+        return;
+      }
+    
+      startCountdown(remain);
+    }
+    
+    /* ===== mulai countdown ===== */
+    function startCountdown(remain) {
+      generateBtn.disabled = true;
+    
+      if (countdownInterval) clearInterval(countdownInterval);
+    
+      countdownInterval = setInterval(() => {
+        remain -= 1000;
+    
+        if (remain <= 0) {
+          clearInterval(countdownInterval);
+          generateBtn.disabled = false;
+          loading.textContent = "⏳ Ready";
+          localStorage.removeItem(COOLDOWN_KEY);
+          showToast("Generate aktif kembali ✓");
+          return;
+        }
+    
+        loading.textContent =
+          "⏳ Remaining time : " + formatTime(remain);
+      }, 1000);
+    }
 
 </script>
 
