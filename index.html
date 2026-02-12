@@ -8,6 +8,36 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
+    /* ===== BACK BUTTON ===== */
+    .btn-back{
+      position:fixed;
+      top:80px;
+      right:16px;
+      width:46px;
+      height:46px;
+      border-radius:14px;
+      background:rgba(0,0,0,0.55);
+      backdrop-filter:blur(10px);
+      color:#fff;
+      font-size:16px;
+      text-decoration:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      box-shadow:0 8px 22px rgba(0,0,0,0.6);
+      transition:transform .15s ease, box-shadow .15s ease;
+    }
+    
+    .btn-back:hover{
+      transform:translateY(-2px);
+      box-shadow:0 14px 30px rgba(0,0,0,0.75);
+    }
+    
+    .btn-back:active{
+      transform:scale(0.92);
+    }
+    
 :root{
   --gold:#ffd86b;
   --cyan:#55fff5;
@@ -251,10 +281,17 @@ textarea{
   opacity:.8;
   text-align:center;
 }
+
+.hidden {
+  display: none;
+}
+
 </style>
 </head>
 
 <body>
+
+<a href="index.html" class="btn-back">✖︎</a>
 
 <!-- BUILD LOCK -->
 <div id="buildLock">
@@ -275,7 +312,8 @@ textarea{
 
     <h1>RMO Risk Server</h1>
 
-    <div id="riskCount">Remaining : 0</div>
+    <div id="riskCount" class="hidden">Remaining : 0</div>
+
     <div id="loading">⏳ Ready</div>
 
     <textarea id="riskBox" readonly placeholder="Tekan Generate untuk menampilkan riskToken..."></textarea>
@@ -413,15 +451,18 @@ textarea{
 
   /* ====== ADMIN (TETAP) ====== */
   adminBtn.addEventListener("click", () => {
-    const pass = prompt("Masukkan password admin:");
-    if (pass === "kaa281215") {
-      adminSection.style.display = "flex";
-      showToast("Mode admin aktif");
-    } else {
-      adminSection.style.display = "none";
-      showToast("Password salah ❌");
-    }
-  });
+  const pass = prompt("Masukkan password admin:");
+  if (pass === "kaa281215") {
+    adminSection.style.display = "flex";
+    riskCount.classList.remove("hidden"); // hanya ini tambahan
+    showToast("Mode admin aktif");
+  } else {
+    adminSection.style.display = "none";
+    riskCount.classList.add("hidden"); // hanya ini tambahan
+    showToast("Password salah ❌");
+  }
+});
+
 
   /* ====== TAMBAH TOKEN (TETAP) ====== */
   updateBtn.addEventListener("click", async () => {
