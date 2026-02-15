@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="id">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <title>RMO Risk Parser (Server)</title>
+      <style>
+         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+         /* ===== BACK BUTTON ===== */
+         .btn-back{
+         position:fixed;
+         top:80px;
+         right:16px;
+         width:46px;
+         height:46px;
+         border-radius:14px;
+         background:rgba(0,0,0,0.55);
+         backdrop-filter:blur(10px);
+         color:#fff;
+         font-size:16px;
+         text-decoration:none;
+         display:flex;
+         align-items:center;
+         justify-content:center;
+         z-index:9999;
+         box-shadow:0 8px 22px rgba(0,0,0,0.6);
+         transition:transform .15s ease, box-shadow .15s ease;
+         }
+         .btn-back:hover{
+         transform:translateY(-2px);
+         box-shadow:0 14px 30px rgba(0,0,0,0.75);
+         }
+         .btn-back:active{
+         transform:scale(0.92);
+         }
+         :root{
+         --gold:#ffd86b;
+         --cyan:#55fff5;
+         --pink:#ff7ad9;
+         --violet:#8f7bff;
+         --border:rgba(255,255,255,.12);
+         }
+         /* ===== BACKGROUND NEON ===== */
+         body{
+         margin:0;
+         min-height:100vh;
+         font-family:Poppins,sans-serif;
+         display:flex;
+         justify-content:center;
+         align-items:center;
+         padding:16px;
+         background:
+         radial-gradient(circle at 10% 20%, #2a0035, transparent 35%),
+         radial-gradient(circle at 90% 80%, #00394a, transparent 35%),
+         linear-gradient(120deg,#05050a,#0b0b14);
+         color:#fff;
+         }
+         /* ===== CARD ===== */
+         .card{
+         width:100%;
+         max-width:640px;
+         padding:18px;
+         border-radius:22px;
+         background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
+         backdrop-filter:blur(14px);
+         box-shadow:
+         0 25px 60px rgba(0,0,0,.6),
+         inset 0 0 0 1px var(--border);
+         }
+         .card-inner{
+         display:flex;
+         flex-direction:column;
+         gap:12px;
+         align-items:center;
+         }
+         /* ===== TITLE ===== */
+         h1{
+         font-size:20px;
+         margin:4px 0 0;
+         background:linear-gradient(90deg,var(--gold),var(--cyan),var(--pink));
+         -webkit-background-clip:text;
+         -webkit-text-fill-color:transparent;
+         }
+         /* ===== TEXT ===== */
+         #riskCount,#loading{
+         font-size:13px;
+         }
+         /* ===== TEXTAREA ===== */
+         textarea{
+         width: 100%; /* samakan dengan #riskBox */
+         min-height: 110px; /* samakan tinggi textarea utama */
+         border-radius: 12px;
+         border: 1px solid var(--border);
+         background: rgba(0,0,0,.35);
+         color: #fff;
+         padding: 12px;
+         resize: none;
+         outline: none;
+         box-shadow: inset 0 6px 18px rgba(0,0,0,.25);
+         backdrop-filter: blur(6px);
+         box-sizing: border-box; /* penting agar tidak overflow */
+         text-align: left;
+         }
+         /* ===== WORKING RAINBOW (DARI FILE AMAN) ===== */
+         #riskBox{
+         animation: rainbowText 4s linear infinite;
+         caret-color:#fff;
+         }
+         @keyframes rainbowText {
+         0% { color:#ff0000; }
+         25% { color:#ffff00; }
+         50% { color:#00ffea; }
+         75% { color:#ff00ff; }
+         100% { color:#ff0000; }
+         }
+         /* ===== BUTTON ===== */
+         .button-row{
+         display:flex;
+         gap:10px;
+         width:100%;
+         max-width:560px;
+         }
+         .btn{
+         flex:1;
+         padding:11px;
+         border-radius:12px;
+         border:none;
+         font-weight:600;
+         cursor:pointer;
+         color:#000;
+         background:linear-gradient(90deg,var(--gold),var(--cyan));
+         box-shadow:0 8px 22px rgba(0,0,0,.4);
+         }
+         .btn.ghost{
+         background:transparent;
+         color:#fff;
+         border:1px solid var(--border);
+         box-shadow:none;
+         }
+         /* ===== ADMIN BUTTON FIXED ===== */
+         #adminBtn {
+         position: fixed;
+         bottom: 18px;
+         right: 16px;
+         width: 46px;
+         height: 46px;
+         border-radius: 14px;
+         background: linear-gradient(90deg, var(--violet), var(--pink));
+         color: #fff;
+         font-size: 20px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         z-index: 9999;
+         box-shadow: 0 8px 22px rgba(0,0,0,0.6);
+         transition: transform .15s ease, box-shadow .15s ease;
+         border: none;
+         cursor: pointer;
+         }
+         #adminBtn:hover {
+         transform: translateY(-2px);
+         box-shadow: 0 14px 30px rgba(0,0,0,0.75);
+         }
+         #adminBtn:active {
+         transform: scale(0.92);
+         }
+         /* ===== ADMIN TEXTAREA CENTER & MATCH MAIN TEXTAREA ===== */
+         #adminSection {
+         display: none;
+         width: 100%;
+         max-width: 560px; /* samakan dengan #riskBox */
+         gap: 10px;
+         flex-direction: column;
+         margin: 0 auto; /* center horizontal */
+         }
+         #newTokenInput {
+         width: 100%; /* samakan dengan #riskBox */
+         min-height: 110px; /* samakan tinggi textarea utama */
+         border-radius: 12px;
+         border: 1px solid var(--border);
+         background: rgba(0,0,0,.35);
+         color: #fff;
+         padding: 12px;
+         resize: none;
+         outline: none;
+         box-shadow: inset 0 6px 18px rgba(0,0,0,.25);
+         backdrop-filter: blur(6px);
+         box-sizing: border-box; /* penting agar tidak overflow */
+         text-align: left;
+         }
+         /* ===== TOAST ===== */
+         #toast{
+         position:fixed;
+         bottom:18px;
+         left:50%;
+         transform:translateX(-50%);
+         background:rgba(0,0,0,.55);
+         color:#fff;
+         padding:10px 14px;
+         border-radius:12px;
+         display:none;
+         box-shadow:0 8px 24px rgba(0,0,0,.5);
+         }
+         /* ===== BUILD LOCK ===== */
+         #buildLock{
+         position:fixed;
+         top:0;
+         left:0;
+         right:0;
+         bottom:0;
+         background:rgba(0,0,0,.85);
+         display:flex;
+         align-items:center;
+         justify-content:center;
+         padding:20px;
+         z-index:9999;
+         }
+         /* BIKIN CENTER BENERAN (ANTI OFFSET MOBILE) */
+         #buildLock .box{
+         width:100%;
+         max-width:360px;
+         padding:22px 20px;
+         border-radius:18px;
+         background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));
+         backdrop-filter:blur(16px);
+         text-align:center;
+         box-shadow:
+         0 25px 60px rgba(0,0,0,.65),
+         inset 0 0 0 1px rgba(255,255,255,.08);
+         transform:translateY(-4px); /* OPTICAL CENTER FIX */
+         }
+         #buildLock h3{
+         margin:0 0 10px;
+         background:linear-gradient(90deg,var(--gold),var(--cyan));
+         -webkit-background-clip:text;
+         -webkit-text-fill-color:transparent;
+         }
+         /* INPUT RAPi DAN SEIMBANG */
+         #buildInput{
+         width:100%;
+         padding:12px 14px;
+         border-radius:12px;
+         border:1px solid rgba(255,255,255,.18);
+         background:rgba(15,15,20,.75);
+         color:#fff;
+         text-align:center;
+         margin:12px 0 14px;
+         outline:none;
+         box-sizing:border-box;
+         }
+         #buildBtn{
+         width:100%;
+         padding:13px;
+         border:none;
+         border-radius:12px;
+         font-weight:600;
+         cursor:pointer;
+         background:linear-gradient(90deg,var(--gold),var(--pink));
+         box-shadow:0 8px 22px rgba(0,0,0,.45);
+         }
+         .card-footer{
+         margin-top:12px;
+         font-size:12px;
+         opacity:.8;
+         text-align:center;
+         }
+         .hidden {
+         display: none;
+         }
+      </style>
+   </head>
+   <body>
+      <a href="index.html" class="btn-back">✖︎</a>
+      <button id="adminBtn" class="btn">⚙</button>
+      <!-- BUILD LOCK -->
+      <div id="buildLock">
+         <div class="box">
+            <h3>🔐 Build ID</h3>
+            <div style="font-size:13px;opacity:.8;margin-bottom:12px">
+               Masukkan Build ID valid
+            </div>
+            <input id="buildInput" placeholder="contoh: 34cd3ead5612d2ba">
+            <button id="buildBtn">UNLOCK</button>
+            <div id="buildMsg" style="font-size:12px;margin-top:10px"></div>
+         </div>
+      </div>
+      <div class="card">
+         <div class="card-inner">
+            <h1>RMO Risk Server</h1>
+            <div id="riskCount" class="hidden">Remaining : 0</div>
+            <div id="loading">⏳ Ready</div>
+            <textarea id="riskBox" readonly placeholder="Tekan Generate untuk menampilkan riskToken..."></textarea>
+            <div class="button-row">
+               <button id="generateBtn" class="btn">🎲 Generate</button>
+               <button id="copyBtn" class="btn ghost">📋 Copy</button>
+            </div>
+            <div id="adminSection">
+               <textarea id="newTokenInput" placeholder="Masukkan riskToken baru atau JSON lengkap..."></textarea>
+               <button id="updateBtn" class="btn">💾 Save</button>
+            </div>
+            <div class="card-footer">
+               <div>RMO copyright</div>
+               <div>the first pioneer of premium .xml</div>
+            </div>
+         </div>
+      </div>
+      <div id="toast"></div>
+      <script>
+         /* ====== BACKEND DIGANTI KE FIREBASE ====== */
+         const FIREBASE_DB =
+           "https://rmorisktoken-default-rtdb.firebaseio.com/raw.json";
+         
+         /* ====== VARIABLE ASLI (TETAP) ====== */
+         const riskBox = document.getElementById("riskBox");
+         const generateBtn = document.getElementById("generateBtn");
+         const copyBtn = document.getElementById("copyBtn");
+         const adminBtn = document.getElementById("adminBtn");
+         const adminSection = document.getElementById("adminSection");
+         const newTokenInput = document.getElementById("newTokenInput");
+         const updateBtn = document.getElementById("updateBtn");
+         const loading = document.getElementById("loading");
+         const toast = document.getElementById("toast");
+         const riskCount = document.getElementById("riskCount");
+         
+         let configArray = [];
+         
+         function showToast(msg) {
+           toast.textContent = msg;
+           toast.style.display = "block";
+           setTimeout(() => toast.style.display = "none", 3000);
+         }
+         
+         function getAutoBuildID() {
+           return localStorage.getItem("BUILD_ID") || "";
+         }
+         
+         /* ====== LOAD DATA (DULUNYA RAW.JSON) ====== */
+         async function loadConfig() {
+           try {
+             const resp = await fetch(FIREBASE_DB, { cache: "no-store" });
+             if (!resp.ok) throw new Error("Gagal load Firebase");
+         
+             configArray = await resp.json() || [];
+             riskCount.textContent = "Remaining : " + configArray.length;
+           } catch (err) {
+             showToast("Gagal membaca data");
+             console.error(err);
+           }
+         }
+         
+         /* ====== SAVE DATA (DULUNYA PUT GITLAB) ====== */
+         async function saveConfig() {
+           const resp = await fetch(FIREBASE_DB, {
+             method: "PUT",
+             headers: { "Content-Type": "application/json" },
+             body: JSON.stringify(configArray)
+           });
+         
+           if (!resp.ok) throw new Error("Gagal update Firebase");
+         }
+         
+         /* ====== GENERATE (TIDAK BERUBAH) ====== */
+         generateBtn.addEventListener("click", async () => {
+         
+         /* ===== COOLDOWN SAVE ===== */
+         localStorage.setItem(COOLDOWN_KEY, Date.now());
+         
+         loading.style.display = "block";
+         riskBox.value = "";
+         
+         await loadConfig();
+         
+         setTimeout(async () => {
+           loading.style.display = "block";
+         
+           if (configArray.length === 0) {
+             riskBox.value = "Data kosong";
+             return;
+           }
+         
+           const randomIndex = Math.floor(Math.random() * configArray.length);
+           const selected = configArray[randomIndex];
+         
+           riskBox.value =
+             selected.data?.riskToken || "Tidak ada riskToken";
+         
+           configArray.splice(randomIndex, 1);
+         
+           try {
+             await saveConfig();
+             showToast("Token terpakai & dihapus ✓");
+           } catch {
+             showToast("Gagal update ke server");
+           }
+         
+           riskCount.textContent =
+             "Remaining : " + configArray.length;
+         
+           /* mulai countdown */
+           startCountdown(COOLDOWN_MS);
+         
+         }, 1500);
+         });
+         
+         
+         /* ====== COPY (TETAP) ====== */
+         copyBtn.addEventListener("click", () => {
+           if (!riskBox.value) {
+             showToast("Belum ada teks untuk disalin");
+             return;
+           }
+           navigator.clipboard.writeText(riskBox.value);
+           showToast("Tersalin ke clipboard ✓");
+         });
+         
+         /* ====== ADMIN (TETAP) ====== */
+         adminBtn.addEventListener("click", () => {
+         const pass = prompt("Masukkan password admin:");
+         if (pass === "kaa281215") {
+           adminSection.style.display = "flex";
+           riskCount.classList.remove("hidden"); // hanya ini tambahan
+           showToast("Mode admin aktif");
+         } else {
+           adminSection.style.display = "none";
+           riskCount.classList.add("hidden"); // hanya ini tambahan
+           showToast("Password salah ❌");
+         }
+         });
+         
+         
+         /* ====== TAMBAH TOKEN (TETAP) ====== */
+         updateBtn.addEventListener("click", async () => {
+           const newToken = newTokenInput.value.trim();
+           if (!newToken) return showToast("Isi token dulu");
+         
+           await loadConfig();
+         
+           let newEntry;
+           try {
+             if (newToken.startsWith("{") && newToken.endsWith("}")) {
+               newEntry = JSON.parse(newToken);
+             } else {
+               newEntry = {
+                 code: 0,
+                 msg: "success",
+                 data: {
+                   riskToken: newToken,
+                   cfgInfo: "time1=300&time2=7200"
+                 }
+               };
+             }
+           } catch {
+             return showToast("Format JSON tidak valid");
+           }
+         
+           configArray.push(newEntry);
+         
+           try {
+             await saveConfig();
+             newTokenInput.value = "";
+             showToast("Token baru disimpan ✓");
+             riskCount.textContent =
+               "Remaining : " + configArray.length;
+           } catch {
+             showToast("Gagal update");
+           }
+         });
+         
+         window.onload = () => {
+           loadConfig();
+           autoCheckBuild();
+           checkCooldown();
+         };
+         
+         /* ===== BUILD ID CHECK (TIDAK DIUBAH) ===== */
+         const BUILD_KEY_URL =
+           "https://rmoautologin-default-rtdb.firebaseio.com/raw.json";
+         
+         async function checkBuildID(input) {
+           try {
+             const res = await fetch(BUILD_KEY_URL, { cache: "no-store" });
+             if (!res.ok) throw new Error("HTTP " + res.status);
+         
+             const list = await res.json();
+         
+             const normalized = input.trim().replace(/\s+/g, "").toLowerCase();
+             const found = list.find(x =>
+               x.build_id.trim().replace(/\s+/g, "").toLowerCase() === normalized
+             );
+         
+             if (!found) return "INVALID";
+         
+             const today = new Date();
+             const exp = new Date(found.date + "T23:59:59");
+             if (today > exp) return "EXPIRED";
+         
+             return "OK";
+           } catch {
+             return "ERROR";
+           }
+         }
+         
+         async function autoCheckBuild() {
+           const buildId = getAutoBuildID();
+           const msg = document.getElementById("buildMsg");
+         
+           if (!buildId) {
+             msg.textContent = "Build ID belum tersedia";
+             showToast("Build ID tidak ditemukan");
+             return;
+           }
+         
+           msg.textContent = "Memverifikasi build otomatis...";
+           const result = await checkBuildID(buildId);
+         
+           if (result === "OK") {
+             document.getElementById("buildLock").style.display = "none";
+             showToast("Build valid ✓");
+           } else if (result === "EXPIRED") {
+             msg.textContent = "Build ID sudah expired";
+           } else if (result === "INVALID") {
+             msg.textContent = "Build ID tidak terdaftar";
+           } else {
+             msg.textContent = "Gagal koneksi server";
+           }
+         }
+         
+         document.getElementById("buildBtn").onclick = async () => {
+           const val = document.getElementById("buildInput").value.trim();
+           const msg = document.getElementById("buildMsg");
+         
+           msg.textContent = "Memeriksa build...";
+           const result = await checkBuildID(val);
+         
+           if (result === "OK") {
+             document.getElementById("buildLock").style.display = "none";
+           } else if (result === "INVALID") {
+             msg.textContent = "Build ID tidak terdaftar";
+           } else if (result === "EXPIRED") {
+             msg.textContent = "Build ID sudah expired";
+           } else {
+             msg.textContent = "Gagal koneksi server";
+           }
+         };
+         
+           /* =================================================
+              24 JAM COOLDOWN GENERATE SYSTEM
+              ================================================= */
+           
+           const COOLDOWN_KEY = "RMO_LAST_GENERATE";
+           const COOLDOWN_MS = 12 * 60 * 60 * 1000; // 24 jam
+           
+           let countdownInterval = null;
+           
+           /* ===== format waktu ===== */
+           function formatTime(ms) {
+             const total = Math.floor(ms / 1000);
+           
+             const h = String(Math.floor(total / 3600)).padStart(2, "0");
+             const m = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
+             const s = String(total % 60).padStart(2, "0");
+           
+             return `${h}:${m}:${s}`;
+           }
+           
+           /* ===== cek cooldown ===== */
+           function checkCooldown() {
+             const last = localStorage.getItem(COOLDOWN_KEY);
+           
+             if (!last) {
+               generateBtn.disabled = false;
+               loading.textContent = "⏳ Ready";
+               return;
+             }
+           
+             const diff = Date.now() - parseInt(last);
+             const remain = COOLDOWN_MS - diff;
+           
+             if (remain <= 0) {
+               generateBtn.disabled = false;
+               loading.textContent = "⏳ Ready";
+               localStorage.removeItem(COOLDOWN_KEY);
+               return;
+             }
+           
+             startCountdown(remain);
+           }
+           
+           /* ===== mulai countdown ===== */
+           function startCountdown(remain) {
+             generateBtn.disabled = true;
+           
+             if (countdownInterval) clearInterval(countdownInterval);
+           
+             countdownInterval = setInterval(() => {
+               remain -= 1000;
+           
+               if (remain <= 0) {
+                 clearInterval(countdownInterval);
+                 generateBtn.disabled = false;
+                 loading.textContent = "⏳ Ready";
+                 localStorage.removeItem(COOLDOWN_KEY);
+                 showToast("Generate aktif kembali ✓");
+                 return;
+               }
+           
+               loading.textContent =
+                 "⏳ Remaining time : " + formatTime(remain);
+             }, 1000);
+           }
+         
+      </script>
+   </body>
+</html>
