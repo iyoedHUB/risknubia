@@ -307,8 +307,10 @@
       <div id="toast"></div>
       <script>
          /* ====== BACKEND DIGANTI KE FIREBASE ====== */
-         const FIREBASE_DB =
-           "https://rmorisktoken-default-rtdb.firebaseio.com/raw.json";
+         const FIREBASE_DB = decodeBase64(
+         "aHR0cHM6Ly9ybW9yaXNrdG9rZW4tZGVmYXVsdC1ydGRiLmZpcmViYXNlaW8uY29tL3Jhdy5qc29u"
+         );
+         
          
          /* ====== VARIABLE ASLI (TETAP) ====== */
          const riskBox = document.getElementById("riskBox");
@@ -416,7 +418,7 @@
          /* ====== ADMIN (TETAP) ====== */
          adminBtn.addEventListener("click", () => {
          const pass = prompt("Masukkan password admin:");
-         if (pass === "kaa281215") {
+         if (pass === decodeBase64("a2FhMjgxMjE1")) {
            adminSection.style.display = "flex";
            riskCount.classList.remove("hidden"); // hanya ini tambahan
            showToast("Mode admin aktif");
@@ -473,8 +475,10 @@
          };
          
          /* ===== BUILD ID CHECK (TIDAK DIUBAH) ===== */
-         const BUILD_KEY_URL =
-           "https://rmoautologin-default-rtdb.firebaseio.com/raw.json";
+         const BUILD_KEY_URL = decodeBase64(
+         "aHR0cHM6Ly9ybW9hdXRvbG9naW4tZGVmYXVsdC1ydGRiLmZpcmViYXNlaW8uY29tL3Jhdy5qc29u"
+         );
+         
          
          async function checkBuildID(input) {
            try {
@@ -548,7 +552,7 @@
               ================================================= */
            
            const COOLDOWN_KEY = "RMO_LAST_GENERATE";
-           const COOLDOWN_MS = 12 * 60 * 60 * 1000; // 24 jam
+           const COOLDOWN_MS = 06 * 60 * 60 * 1000; // 24 jam
            
            let countdownInterval = null;
            
@@ -608,6 +612,11 @@
                  "⏳ Remaining time : " + formatTime(remain);
              }, 1000);
            }
+           
+           function decodeBase64(str){
+         return atob(str);
+         }
+         
          
       </script>
    </body>
