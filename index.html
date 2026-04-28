@@ -291,8 +291,7 @@
             <div id="loading">⏳ Ready</div>
             <textarea id="riskBox" readonly placeholder="Tekan Generate untuk menampilkan riskToken..."></textarea>
             <div class="button-row">
-               <button id="generateBtn" class="btn">🎲 Generate</button>
-               <button id="copyBtn" class="btn ghost">📋 Copy</button>
+               <button id="generateBtn" class="btn">🎲 Generate & Copy</button>
             </div>
             <div id="adminSection">
                <textarea id="newTokenInput" placeholder="Masukkan riskToken baru atau JSON lengkap..."></textarea>
@@ -315,7 +314,6 @@
          /* ====== VARIABLE ASLI (TETAP) ====== */
          const riskBox = document.getElementById("riskBox");
          const generateBtn = document.getElementById("generateBtn");
-         const copyBtn = document.getElementById("copyBtn");
          const adminBtn = document.getElementById("adminBtn");
          const adminSection = document.getElementById("adminSection");
          const newTokenInput = document.getElementById("newTokenInput");
@@ -383,8 +381,18 @@
            const randomIndex = Math.floor(Math.random() * configArray.length);
            const selected = configArray[randomIndex];
          
-           riskBox.value =
-             selected.data?.riskToken || "Tidak ada riskToken";
+           const generatedToken =
+              selected.data?.riskToken || "Tidak ada riskToken";
+            
+            riskBox.value = generatedToken;
+            
+            /* auto copy */
+            try {
+              await navigator.clipboard.writeText(generatedToken);
+              showToast("Token generated & copied ✓");
+            } catch {
+              showToast("Token generated (copy gagal)");
+            }
          
            configArray.splice(randomIndex, 1);
          
@@ -402,17 +410,6 @@
            startCountdown(COOLDOWN_MS);
          
          }, 1500);
-         });
-         
-         
-         /* ====== COPY (TETAP) ====== */
-         copyBtn.addEventListener("click", () => {
-           if (!riskBox.value) {
-             showToast("Belum ada teks untuk disalin");
-             return;
-           }
-           navigator.clipboard.writeText(riskBox.value);
-           showToast("Tersalin ke clipboard ✓");
          });
          
          /* ====== ADMIN (TETAP) ====== */
