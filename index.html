@@ -275,11 +275,11 @@
       <!-- BUILD LOCK -->
       <div id="buildLock">
          <div class="box">
-            <h3>🔐 Build ID</h3>
+            <h3>🔐 RMO Risk Server</h3>
             <div style="font-size:13px;opacity:.8;margin-bottom:12px">
-               Masukkan Build ID valid
+               Enter Build ID
             </div>
-            <input id="buildInput" placeholder="contoh: 34cd3ead5612d2ba">
+            <input id="buildInput" placeholder="c9153503cf817b46">
             <button id="buildBtn">UNLOCK</button>
             <div id="buildMsg" style="font-size:12px;margin-top:10px"></div>
          </div>
@@ -289,17 +289,17 @@
             <h1>RMO Risk Server</h1>
             <div id="riskCount" class="hidden">Remaining : 0</div>
             <div id="loading">⏳ Ready</div>
-            <textarea id="riskBox" readonly placeholder="Tekan Generate untuk menampilkan riskToken..."></textarea>
+            <textarea id="riskBox" readonly placeholder="Click Generate & Copy..."></textarea>
             <div class="button-row">
                <button id="generateBtn" class="btn">🎲 Generate & Copy</button>
             </div>
             <div id="adminSection">
-               <textarea id="newTokenInput" placeholder="Masukkan riskToken baru atau JSON lengkap..."></textarea>
+               <textarea id="newTokenInput" placeholder="ADMIN"></textarea>
                <button id="updateBtn" class="btn">💾 Save</button>
             </div>
             <div class="card-footer">
-               <div>RMO copyright</div>
-               <div>the first pioneer of premium .xml</div>
+               <div>RMO copyright 2021</div>
+               <div>first pioneer of premium .xml</div>
             </div>
          </div>
       </div>
@@ -414,7 +414,7 @@
          
          /* ====== ADMIN (TETAP) ====== */
          adminBtn.addEventListener("click", () => {
-         const pass = prompt("Masukkan password admin:");
+         const pass = prompt("admin :");
          if (pass === decodeBase64("a2FhMjgxMjE1")) {
            adminSection.style.display = "flex";
            riskCount.classList.remove("hidden"); // hanya ini tambahan
@@ -422,7 +422,7 @@
          } else {
            adminSection.style.display = "none";
            riskCount.classList.add("hidden"); // hanya ini tambahan
-           showToast("Password salah ❌");
+           showToast("salah ❌");
          }
          });
          
@@ -505,8 +505,8 @@
            const msg = document.getElementById("buildMsg");
          
            if (!buildId) {
-             msg.textContent = "Build ID belum tersedia";
-             showToast("Build ID tidak ditemukan");
+             msg.textContent = "Build ID not registered";
+             showToast("Build ID not registered");
              return;
            }
          
@@ -529,17 +529,17 @@
            const val = document.getElementById("buildInput").value.trim();
            const msg = document.getElementById("buildMsg");
          
-           msg.textContent = "Memeriksa build...";
+           msg.textContent = "Check Build ID ...";
            const result = await checkBuildID(val);
          
            if (result === "OK") {
              document.getElementById("buildLock").style.display = "none";
            } else if (result === "INVALID") {
-             msg.textContent = "Build ID tidak terdaftar";
+             msg.textContent = "Build ID not registered";
            } else if (result === "EXPIRED") {
-             msg.textContent = "Build ID sudah expired";
+             msg.textContent = "Build ID expired";
            } else {
-             msg.textContent = "Gagal koneksi server";
+             msg.textContent = "Connection Failed";
            }
          };
          
@@ -548,7 +548,7 @@
               ================================================= */
            
            const COOLDOWN_KEY = "RMO_LAST_GENERATE";
-           const COOLDOWN_MS = 06 * 60 * 60 * 1000; // 24 jam
+           const COOLDOWN_MS = 03 * 60 * 60 * 1000; // 24 jam
            
            let countdownInterval = null;
            
